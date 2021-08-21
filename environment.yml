@@ -1,0 +1,10 @@
+name: store-variants
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3
+  - pyvcf=0.6.8
+  - sqlalchemy=1.4.22
+  - alembic=1.6.5
