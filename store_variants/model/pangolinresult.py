@@ -5,8 +5,8 @@ Base = declarative_base()
 
 class PangolinResult(Base):
     __tablename__ = "pangolin_result"
-    sequencing_run_id  = sa.Column(sa.String, primary_key=True)
-    library_id         = sa.Column(sa.String, primary_key=True)
+    sequencing_run_id  = sa.Column(sa.String, sa.ForeignKey('sequencing_run.sequencing_run_id'), primary_key=True)
+    library_id         = sa.Column(sa.String, sa.ForeignKey('library.library_id'), primary_key=True)
     lineage            = sa.Column(sa.String)
     conflict           = sa.Column(sa.Float)
     ambiguity_score    = sa.Column(sa.Float)
