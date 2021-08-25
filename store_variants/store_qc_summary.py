@@ -20,6 +20,12 @@ from store_variants.model.sequencingrun import SequencingRun
 def sequencing_run_id_to_sequencing_run_obj(sequencing_run_id):
     sequencing_run_obj = SequencingRun()
     sequencing_run_obj.sequencing_run_id = sequencing_run_id
+    sequencing_run_obj.run_date = sequencing_run_id_to_run_date(sequencing_run_id)
+    sequencing_run_obj.instrument_id = sequencing_run_id.split('_')[1]
+    if sequencing_run_obj.instrument_id.startswith('M'):
+        sequencing_run_obj.platform = 'MISEQ'
+    elif sequencing_run_obj.instrument_id.startswith('V'):
+        sequencing_run_obj.platform = 'NEXTSEQ'
     return sequencing_run_obj
 
 

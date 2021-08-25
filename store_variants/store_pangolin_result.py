@@ -17,10 +17,25 @@ from store_variants.model.library import Library
 from store_variants.model.sequencingrun import SequencingRun
 
 
+def sequencing_run_id_to_run_date(sequencing_run_id):
+    run_id_date_string = sequencing_run_id.split('_')[0]
+    year = '20' + run_id_date_string[0:2]
+    month = run_id_date_string[2:4]
+    day = run_id_date_string[4:6]
+    iso8601_date_string = year + '-' + month + '-' + day
+    run_date = date.fromisoformat(iso8601_date_string)
+    return run_date
+
+
 def sequencing_run_id_to_sequencing_run_obj(sequencing_run_id):
     sequencing_run_obj = SequencingRun()
     sequencing_run_obj.sequencing_run_id = sequencing_run_id
+    sequencing_run_obj.run_date = sequencing_run_id_to_run_date(sequencing_run_id)
     sequencing_run_obj.instrument_id = sequencing_run_id.split('_')[1]
+    if sequencing_run_obj.instrument_id.startswith('M'):
+        sequencing_run_obj.platform = 'MISEQ'
+    elif sequencing_run_obj.instrument_id.startswith('V'):
+        sequencing_run_obj.platform = 'NEXTSEQ'
     return sequencing_run_obj
 
 
