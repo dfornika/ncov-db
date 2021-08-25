@@ -130,10 +130,10 @@ def main(args):
         'nmd_percent_transcripts_affected',
     ]
 
-    excluded_formats = {'MIN_DP'}
+    excluded_formats = {'GQ', 'MIN_DP'}
     formats = list(filter(lambda x: x not in excluded_formats, formats))
 
-    excluded_infos = {'END'}
+    excluded_infos = {'END', 'MIN_DP'}
     infos = list(filter(lambda x: x not in excluded_infos, infos))
 
     if has_info_ann:
@@ -154,7 +154,9 @@ def main(args):
     for record in reader:
         info_row = [flatten(record.INFO.get(i, None)) for i in infos]
         [alt] = record.ALT
-        fixed = [record.CHROM, record.POS, record.ID, record.REF, alt, record.QUAL]
+        if not record.ID:
+            record_id = '.'
+        fixed = [record.CHROM, record.POS, record_id, record.REF, alt, record.QUAL]
 
         for sample in record.samples:
             if args.sample_id:
