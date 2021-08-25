@@ -11,10 +11,8 @@ import sys
 import sqlalchemy as sa
 import sqlalchemy.orm as sao
 
-from store_variants.model.pangolinresult import PangolinResult
-from store_variants.model.container import Container
-from store_variants.model.library import Library
-from store_variants.model.sequencingrun import SequencingRun
+import store_variants.model as model
+
 
 
 def sequencing_run_id_to_run_date(sequencing_run_id):
@@ -28,7 +26,7 @@ def sequencing_run_id_to_run_date(sequencing_run_id):
 
 
 def sequencing_run_id_to_sequencing_run_obj(sequencing_run_id):
-    sequencing_run_obj = SequencingRun()
+    sequencing_run_obj = model.SequencingRun()
     sequencing_run_obj.sequencing_run_id = sequencing_run_id
     sequencing_run_obj.run_date = sequencing_run_id_to_run_date(sequencing_run_id)
     sequencing_run_obj.instrument_id = sequencing_run_id.split('_')[1]
@@ -47,7 +45,7 @@ def library_id_to_container_id(library_id):
 
 
 def library_id_to_container_obj(library_id):
-    container_obj = Container()
+    container_obj = model.Container()
     container_obj.container_id = library_id_to_container_id(library_id)
     return container_obj
 
@@ -73,7 +71,7 @@ def library_id_to_library_obj(library_id):
     library['plate_row'] = library['plate_well'][0]
     library['plate_col'] = int(library['plate_well'][-2:])
     
-    library_obj = Library()
+    library_obj = model.Library()
     for key in library.keys():
         setattr(library_obj, key, library[key])
 
@@ -121,7 +119,7 @@ def parse_pangolin_results(pangolin_results_path):
                 if p[f]:
                     p[f] = float(p[f])
             
-            pangolin_result_obj = PangolinResult()
+            pangolin_result_obj = model.PangolinResult()
             for key in p.keys():
                 setattr(pangolin_result_obj, key, p[key])
 
@@ -132,9 +130,9 @@ def parse_pangolin_results(pangolin_results_path):
 
 def store_sequencing_run(session, sequencing_run_id):
     existing_run = (
-        session.query(SequencingRun)
+        session.query(model.SequencingRun)
         .filter(
-            SequencingRun.sequencing_run_id == sequencing_run_id
+            model.SequencingRun.sequencing_run_id == sequencing_run_id
         )
         .one_or_none()
     )
@@ -150,10 +148,10 @@ def store_pangolin_results(session, pangolin_results):
         container_id = library_id_to_container_id(pangolin_result.library_id)
         if container_id:
             existing_container = (
-                session.query(Container)
+                session.query(model.Container)
                 .filter(
                     sa.and_(
-                        Container.container_id == container_id
+                        model.Container.container_id == container_id
                     )
                 )
                 .one_or_none()
@@ -164,10 +162,10 @@ def store_pangolin_results(session, pangolin_results):
                 session.add(new_container)
     
         existing_library = (
-            session.query(Library)
+            session.query(model.Library)
             .filter(
                 sa.and_(
-                    Library.library_id == pangolin_result.library_id
+                    model.Library.library_id == pangolin_result.library_id
                 )
             )
             .one_or_none()
@@ -178,23 +176,21 @@ def store_pangolin_results(session, pangolin_results):
             session.add(new_library)
 
         existing_pangolin_result = (
-            session.query(PangolinResult)
+            session.query(model.PangolinResult)
             .filter(
                 sa.and_(
-                    PangolinResult.sequencing_run_id == pangolin_result.sequencing_run_id,
-                    PangolinResult.library_id == pangolin_result.library_id,
-                    PangolinResult.version == pangolin_result.version,
-                    PangolinResult.pangolin_version == pangolin_result.pangolin_version,
-                    PangolinResult.pangolearn_version == pangolin_result.pangolearn_version,
-                    PangolinResult.pango_version == pangolin_result.pango_version,
+                    model.PangolinResult.sequencing_run_id == pangolin_result.sequencing_run_id,
+                    model.PangolinResult.library_id == pangolin_result.library_id,
+                    model.PangolinResult.version == pangolin_result.version,
+                    model.PangolinResult.pangolin_version == pangolin_result.pangolin_version,
+                    model.PangolinResult.pangolearn_version == pangolin_result.pangolearn_version,
+                    model.PangolinResult.pango_version == pangolin_result.pango_version,
                 )
             )
             .one_or_none()
         )
     
-        if existing_pangolin_result is not None:
-            return None
-        else:
+        if existing_pangolin_result is None:
             session.add(pangolin_result)
 
         if idx % 1000 == 0:
