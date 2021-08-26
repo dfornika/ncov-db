@@ -21,6 +21,13 @@ class Library(Base):
     plate_col        = sa.Column(sa.Integer)
 
 
+class QpcrResult(Base):
+    __tablename__ = "qpcr_result"
+    container_id = sa.Column(sa.String, sa.ForeignKey('container.container_id'), primary_key=True)
+    target       = sa.Column(sa.String)
+    ct_value     = sa.Column(sa.Float)
+
+
 class SequencingRun(Base):
     __tablename__ = "sequencing_run"
     sequencing_run_id = sa.Column(sa.String, primary_key=True)
@@ -30,7 +37,7 @@ class SequencingRun(Base):
 
 
 class NcovToolsSummaryQC(Base):
-    __tablename__ = "summary_qc"
+    __tablename__ = "ncov_tools_summary_qc"
     library_id                 = sa.Column(sa.String, sa.ForeignKey('library.library_id'), primary_key=True)
     sequencing_run_id          = sa.Column(sa.String, sa.ForeignKey('sequencing_run.sequencing_run_id'), primary_key=True)
     num_consensus_snvs         = sa.Column(sa.Integer)
