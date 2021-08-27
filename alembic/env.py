@@ -61,15 +61,25 @@ def run_migrations_online():
     # with the implementation from here:
     # https://alembic.sqlalchemy.org/en/latest/cookbook.html#sharing-a-connection-with-a-series-of-migration-commands-and-environments
     # in order to get tests working with in-memory db
+    db_path = context.get_x_argument(as_dictionary=True).get('db')
+    if db_path:
+        ini_section = config.get_section(config.config_ini_section, 'alembic')
+        ini_section['sqlalchemy.url'] = db_path
+
     connectable = config.attributes.get('connection', None)
 
     if connectable is None:
         # only create Engine if we don't have a Connection
         # from the outside
+        db_path = context.get_x_argument(as_dictionary=True).get('db')
+        if db_path:
+            ini_section = config.get_section(config.config_ini_section)
+            ini_section['sqlalchemy.url'] = db_path
         connectable = engine_from_config(
-            config.get_section(config.config_ini_section),
+            ini_section,
             prefix='sqlalchemy.',
-            poolclass=pool.NullPool)
+            poolclass=pool.NullPool
+        )
 
     # when connectable is already a Connection object, calling
     # connect() gives us a *branched connection*.
@@ -82,6 +92,7 @@ def run_migrations_online():
 
         with context.begin_transaction():
             context.run_migrations()
+
     #connectable = engine_from_config(
     #    config.get_section(config.config_ini_section),
     #    prefix="sqlalchemy.",
