@@ -13,7 +13,7 @@ from datetime import date
 import sqlalchemy as sa
 import sqlalchemy.orm as sao
 
-import store_variants.model as model
+import ncov_db.model as model
 
 
 def sequencing_run_id_to_run_date(sequencing_run_id):

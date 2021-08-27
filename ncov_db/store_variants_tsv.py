@@ -12,7 +12,7 @@ from dataclasses import dataclass
 import sqlalchemy as sa
 import sqlalchemy.orm as sao
 
-import store_variants.model as model
+import ncov_db.model as model
 
 def library_id_to_container_id(library_id):
     container_id = None
@@ -181,7 +181,7 @@ def parse_variants_tsv(variants_tsv_path, library_id, filters):
                     elif variant['alt_allele_frequency'] > filters['freq_threshold']:
                         variant['consensus_allele'] = variant['alt_allele']
                 except KeyError as e:
-                    print('No consensus allele. file: ' + variants_tsv_path + ', position: ' + str(variant['nucleotide_position']))
+                    print('No consensus allele. file: ' + str(variants_tsv_path) + ', position: ' + str(variant['nucleotide_position']))
 
             if variant['variant_type'] == 'snp':
                 try:
@@ -190,7 +190,7 @@ def parse_variants_tsv(variants_tsv_path, library_id, filters):
                     else:
                         variant['is_ambiguous'] = False
                 except KeyError as e:
-                    print('No consensus allele. file: ' + variants_tsv_path + ', position: ' + str(variant['nucleotide_position']))
+                    print('No consensus allele. file: ' + str(variants_tsv_path) + ', position: ' + str(variant['nucleotide_position']))
 
             variant_obj = model.VariantIvar()
             for key in variant.keys():

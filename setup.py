@@ -2,11 +2,11 @@ from pathlib import Path
 
 from setuptools import setup, find_packages
 
-import store_variants
+import ncov_db
 
 setup(
-    name='store_variants',
-    version=store_variants.__version__,
+    name='ncov-db',
+    version=ncov_db.__version__,
     description='',
     author='Dan Fornika',
     author_email='dan.fornika@bccdc.ca',

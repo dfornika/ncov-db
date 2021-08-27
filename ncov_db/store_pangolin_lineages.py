@@ -11,7 +11,7 @@ import sys
 import sqlalchemy as sa
 import sqlalchemy.orm as sao
 
-import store_variants.model as model
+import ncov_db.model as model
 
 
 

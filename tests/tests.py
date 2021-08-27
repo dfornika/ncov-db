@@ -13,7 +13,7 @@ import sqlalchemy.orm as sao
 from hypothesis import settings, example, given, Verbosity, strategies as st
 from hypothesis_sqlalchemy import tabular
 
-import store_variants.model as model
+import ncov_db.model as model
 
 
 connection_string = "sqlite+pysqlite:///:memory:"

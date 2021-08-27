@@ -3,16 +3,18 @@
 import argparse
 import collections
 import csv
-from datetime import date
 import json
 import os
 import re
 import sys
 
+from dataclasses import dataclass
+from datetime import date
+
 import sqlalchemy as sa
 import sqlalchemy.orm as sao
 
-import store_variants.model as model
+import ncov_db.model as model
 
 
 def library_id_to_container_id(library_id):
@@ -103,9 +105,21 @@ def parse_amino_acid_mutation_tsv(amino_acid_mutation_tsv_path):
                     m[f] = None
 
             if m['amino_acid_change'] and not re.search('deletion', m['consequence']):
-                m['ref_amino_acid'] = re.search('^[A-Z]+', m['amino_acid_change']).group(0)
-                m['codon_position'] = int(re.search('[0-9]+', m['amino_acid_change']).group(0))
-                m['alt_amino_acid'] = re.search('[A-Z]+$', m['amino_acid_change']).group(0)
+                ref_aa_match = re.search('^[A-Z]+', m['amino_acid_change'])
+                if ref_aa_match:
+                    m['ref_amino_acid'] = ref_aa_match.group(0)
+                else:
+                    m['ref_amino_acid'] = None
+                codon_position_match = re.search('[0-9]+', m['amino_acid_change'])
+                if codon_position_match:
+                    m['codon_position'] = int(codon_position_match.group(0))
+                else:
+                    m['codon_position'] = None
+                alt_aa_match = re.search('[A-Z]+$', m['amino_acid_change'])
+                if alt_aa_match:
+                    m['alt_amino_acid'] = alt_aa_match.group(0)
+                else:
+                    m['alt_amino_acid'] = None
             else:
                 m['ref_amino_acid'] = None
                 m['codon_position'] = None
@@ -185,14 +199,12 @@ def store_amino_acid_mutations(session, amino_acid_mutations):
     return None
     
 
-def main(args):
+def main(args, kwargs=None):
 
-    if args.db:
-        db = args.db
-    else:
-        db = ':memory:'
+    if not args:
+        args = Args(**kwargs)
 
-    connection_string = "sqlite+pysqlite:///" + db
+    connection_string = "sqlite+pysqlite:///" + args.db
     engine = sa.create_engine(connection_string)
     Session = sao.sessionmaker()
     Session.configure(bind=engine)
@@ -204,9 +216,14 @@ def main(args):
     store_amino_acid_mutations(session, aa_mutations)
 
 
+@dataclass
+class Args:
+    db: str
+    ncov_tools_aa_table: str
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('ncov_tools_aa_table')
-    parser.add_argument('--db')
+    parser.add_argument('--db', required=True)
     args = parser.parse_args()
     main(args)
