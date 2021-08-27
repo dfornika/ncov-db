@@ -1,4 +1,4 @@
-"""Create variant_ivar table
+"""create variant_ivar table
 
 Revision ID: 45aeb447b7ac
 Revises: e0d9e28f6c3c
@@ -23,7 +23,7 @@ def upgrade():
         sa.Column('variant_calling_tool',           sa.String, primary_key=True),
         sa.Column('variant_calling_tool_version',   sa.String, primary_key=True),
         sa.Column('ref_accession',                  sa.String, primary_key=True),
-        sa.Column('position',                       sa.Integer, primary_key=True),
+        sa.Column('nucleotide_position',            sa.Integer, primary_key=True),
         sa.Column('ref_allele',                     sa.String, primary_key=True),
         sa.Column('alt_allele',                     sa.String, primary_key=True),
         sa.Column('ref_allele_depth',               sa.Integer),
@@ -39,11 +39,13 @@ def upgrade():
         sa.Column('total_depth',                    sa.Integer),
         sa.Column('p_value_fishers_exact',          sa.Float),
         sa.Column('p_value_pass',                   sa.Boolean),
-        sa.Column('gff_feature',                    sa.String),
+        sa.Column('gene',                           sa.String),
         sa.Column('ref_codon',                      sa.String),
         sa.Column('ref_amino_acid',                 sa.String),
         sa.Column('alt_codon',                      sa.String),
         sa.Column('alt_amino_acid',                 sa.String),
+        sa.Column('codon_position',                 sa.Integer),
+        sa.Column('mutation_name_by_amino_acid',    sa.String),
     )
 
 

@@ -53,29 +53,31 @@ def library_id_to_library_obj(library_id):
 
 def parse_variants_tsv(variants_tsv_path, library_id, filters):
     field_name_conversion = {
-        'REGION':      'ref_accession',                 
-        'POS':         'position',                      
-        'REF':         'ref_allele',                    
-        'ALT':         'alt_allele',                    
-        'REF_DP':      'ref_allele_depth',              
+        'REGION':      'ref_accession',
+        'POS':         'nucleotide_position',
+        'REF':         'ref_allele',
+        'ALT':         'alt_allele',
+        'REF_DP':      'ref_allele_depth',
         'REF_RV':      'ref_allele_depth_reverse_reads',
-        'REF_QUAL':    'ref_allele_mean_quality',       
-        'ALT_DP':      'alt_allele_depth',              
+        'REF_QUAL':    'ref_allele_mean_quality',
+        'ALT_DP':      'alt_allele_depth',
         'ALT_RV':      'alt_allele_depth_reverse_reads',
-        'ALT_QUAL':    'alt_allele_mean_quality',       
-        'ALT_FREQ':    'alt_allele_frequency',          
-        'TOTAL_DP':    'total_depth',                   
-        'PVAL':        'p_value_fishers_exact',         
-        'PASS':        'p_value_pass',                  
-        'GFF_FEATURE': 'gff_feature',                   
-        'REF_CODON':   'ref_codon',                     
-        'REF_AA':      'ref_amino_acid',                
-        'ALT_CODON':   'alt_codon',                     
-        'ALT_AA':      'alt_amino_acid',                
+        'ALT_QUAL':    'alt_allele_mean_quality',
+        'ALT_FREQ':    'alt_allele_frequency',
+        'TOTAL_DP':    'total_depth',
+        'PVAL':        'p_value_fishers_exact',
+        'PASS':        'p_value_pass',
+        'GFF_FEATURE': 'gene',
+        'REF_CODON':   'ref_codon',
+        'REF_AA':      'ref_amino_acid',
+        'ALT_CODON':   'alt_codon',
+        'ALT_AA':      'alt_amino_acid',
+        'CODON_POS':   'codon_position',
+        'MUT_NAME':    'mutation_name_by_amino_acid',
     }
 
     int_fields = [
-        'position',
+        'nucleotide_position',
         'ref_allele_depth',
         'ref_allele_depth_reverse_reads',
         'ref_allele_mean_quality',
@@ -83,6 +85,7 @@ def parse_variants_tsv(variants_tsv_path, library_id, filters):
         'alt_allele_depth_reverse_reads',
         'alt_allele_mean_quality',
         'total_depth',
+        'codon_position',
     ]
 
     float_fields = [
@@ -95,11 +98,13 @@ def parse_variants_tsv(variants_tsv_path, library_id, filters):
     ]
 
     na_null_fields = [
-        'gff_feature',
+        'gene',
         'ref_codon',
         'ref_amino_acid',
         'alt_codon',
         'alt_amino_acid',
+        'codon_position',
+        'mutation_name_by_amino_acid',
     ]
 
     iupac_ambiguity = {
@@ -130,17 +135,29 @@ def parse_variants_tsv(variants_tsv_path, library_id, filters):
             variant['library_id'] = library_id
             variant['variant_calling_tool'] = 'ivar'
             variant['variant_calling_tool_version'] = '1.3'
+
             for k, v in field_name_conversion.items():
-                variant[v] = row[k]
-            for f in int_fields:
-                variant[f] = int(variant[f])
-            for f in float_fields:
-                variant[f] = float(variant[f])
-            for f in bool_fields:
-                variant[f] = bool(variant[f])
+                if k in row:
+                    variant[v] = row[k]
+                else:
+                    variant[v] = None
+
             for f in na_null_fields:
                 if variant[f] == 'NA':
                     variant[f] = None
+
+            for f in int_fields:
+                if variant[f] is not None:
+                    variant[f] = int(variant[f])
+
+            for f in float_fields:
+                if variant[f] is not None:
+                    variant[f] = float(variant[f])
+
+            for f in bool_fields:
+                if variant[f] is not None:
+                    variant[f] = bool(variant[f])
+            
 
             if len(variant['ref_allele']) == 1 and len(variant['alt_allele']) == 1:
                 variant['variant_type'] = 'snp'
@@ -160,7 +177,7 @@ def parse_variants_tsv(variants_tsv_path, library_id, filters):
                     elif variant['alt_allele_frequency'] > filters['freq_threshold']:
                         variant['consensus_allele'] = variant['alt_allele']
                 except KeyError as e:
-                    print('No consensus allele. file: ' + variants_tsv_path + ', position: ' + str(variant['position']))
+                    print('No consensus allele. file: ' + variants_tsv_path + ', position: ' + str(variant['nucleotide_position']))
 
             if variant['variant_type'] == 'snp':
                 try:
@@ -169,7 +186,7 @@ def parse_variants_tsv(variants_tsv_path, library_id, filters):
                     else:
                         variant['is_ambiguous'] = False
                 except KeyError as e:
-                    print('No consensus allele. file: ' + variants_tsv_path + ', position: ' + str(variant['position']))
+                    print('No consensus allele. file: ' + variants_tsv_path + ', position: ' + str(variant['nucleotide_position']))
 
             variant_obj = model.VariantIvar()
             for key in variant.keys():
@@ -229,7 +246,7 @@ def store_variants(session, variants):
                     model.VariantIvar.variant_calling_tool == variant.variant_calling_tool,
                     model.VariantIvar.variant_calling_tool_version == variant.variant_calling_tool_version,
                     model.VariantIvar.ref_accession == variant.ref_accession,
-                    model.VariantIvar.position == variant.position,
+                    model.VariantIvar.nucleotide_position == variant.nucleotide_position,
                     model.VariantIvar.ref_allele == variant.ref_allele,
                     model.VariantIvar.alt_allele == variant.alt_allele,
                 )

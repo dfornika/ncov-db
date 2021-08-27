@@ -52,6 +52,26 @@ class NcovToolsSummaryQC(Base):
     qc_flags                   = sa.Column(sa.String)
     qc_pass                    = sa.Column(sa.Boolean)
 
+    
+class Ncov2019ArticNfQC(Base):
+    __tablename__ = "ncov2019_artic_nf_qc"
+    library_id            = sa.Column(sa.String, sa.ForeignKey('library.library_id'), primary_key=True)
+    percent_n_bases       = sa.Column(sa.Float)
+    genome_completeness   = sa.Column(sa.Float)
+    longest_no_n_run      = sa.Column(sa.Integer)
+    num_aligned_reads     = sa.Column(sa.Integer)
+    qc_pass               = sa.Column(sa.Boolean)
+    
+
+class DownsamplingReport(Base):
+    __tablename__ = "downsampling_report"
+    library_id          = sa.Column(sa.String, sa.ForeignKey('library.library_id'), primary_key=True)
+    total_input_reads   = sa.Column(sa.Integer)
+    reads_processed     = sa.Column(sa.Integer)
+    reads_written       = sa.Column(sa.Integer)
+    reads_discarded     = sa.Column(sa.Integer)
+    downsampling_factor = sa.Column(sa.Float)
+
 
 class VariantIvar(Base):
     __tablename__ = "variant_ivar"
@@ -59,7 +79,7 @@ class VariantIvar(Base):
     variant_calling_tool           = sa.Column(sa.String, primary_key=True)
     variant_calling_tool_version   = sa.Column(sa.String, primary_key=True)
     ref_accession                  = sa.Column(sa.String, primary_key=True)
-    position                       = sa.Column(sa.Integer, primary_key=True)
+    nucleotide_position                       = sa.Column(sa.Integer, primary_key=True)
     ref_allele                     = sa.Column(sa.String, primary_key=True)
     alt_allele                     = sa.Column(sa.String, primary_key=True)
     ref_allele_depth               = sa.Column(sa.Integer)
@@ -75,11 +95,28 @@ class VariantIvar(Base):
     total_depth                    = sa.Column(sa.Integer)
     p_value_fishers_exact          = sa.Column(sa.Float)
     p_value_pass                   = sa.Column(sa.Boolean)
-    gff_feature                    = sa.Column(sa.String)
+    gene                           = sa.Column(sa.String)
     ref_codon                      = sa.Column(sa.String)
     ref_amino_acid                 = sa.Column(sa.String)
     alt_codon                      = sa.Column(sa.String)
     alt_amino_acid                 = sa.Column(sa.String)
+    codon_position                 = sa.Column(sa.Integer)
+    mutation_name_by_amino_acid    = sa.Column(sa.String)
+
+
+class NcovToolsAminoAcidMutation(Base):
+    __tablename__ = "ncov_tools_amino_acid_mutation"
+    library_id                  = sa.Column(sa.String, sa.ForeignKey('library.library_id'), primary_key=True)
+    ref_accession               = sa.Column(sa.String, primary_key=True)
+    nucleotide_position         = sa.Column(sa.Integer, primary_key=True)
+    ref_allele                  = sa.Column(sa.Integer, primary_key=True)
+    alt_allele                  = sa.Column(sa.Integer, primary_key=True)
+    consequence                 = sa.Column(sa.String)
+    gene                        = sa.Column(sa.String)
+    ref_amino_acid              = sa.Column(sa.String)
+    alt_amino_acid              = sa.Column(sa.String)
+    codon_position              = sa.Column(sa.Integer)
+    mutation_name_by_amino_acid = sa.Column(sa.String)
 
 
 class PangolinResult(Base):
