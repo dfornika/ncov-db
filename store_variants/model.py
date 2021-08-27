@@ -24,7 +24,6 @@ class Library(Base):
 class QpcrResult(Base):
     __tablename__ = "qpcr_result"
     container_id = sa.Column(sa.String, sa.ForeignKey('container.container_id'), primary_key=True)
-    target       = sa.Column(sa.String)
     ct_value     = sa.Column(sa.Float)
 
 

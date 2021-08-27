@@ -7,6 +7,8 @@ import json
 import os
 import sys
 
+from dataclasses import dataclass
+
 import sqlalchemy as sa
 import sqlalchemy.orm as sao
 
@@ -32,10 +34,12 @@ def library_id_to_library_obj(library_id):
     if library_id.startswith('POS'):
         library['container_id'] = None
         library['library_plate_id'] = library_id_components[2]
+        library['index_set_id'] = library_id_components[3]
         library['plate_well'] = 'G12'
     elif library_id.startswith('NEG'):
         library['container_id'] = None
         library['library_plate_id'] = library_id_components[2]
+        library['index_set_id'] = library_id_components[3]
         library['plate_well'] = 'H12'
     else:
         library['container_id'] = library_id_components[0]
@@ -263,14 +267,11 @@ def store_variants(session, variants):
     return None
     
 
-def main(args):
+def main(args, kwargs=None):
+    if not args:    
+        args = Args(**kwargs)
 
-    if args.db:
-        db = args.db
-    else:
-        db = ':memory:'
-
-    connection_string = "sqlite+pysqlite:///" + db
+    connection_string = "sqlite+pysqlite:///" + args.db
     engine = sa.create_engine(connection_string)
     Session = sao.sessionmaker()
     Session.configure(bind=engine)
@@ -293,10 +294,18 @@ def main(args):
     store_variants(session, variants)
 
 
+@dataclass
+class Args:
+    db: str
+    variants: str
+    min_freq_threshold: float = 0.25
+    freq_threshold: float = 0.75
+    min_depth: int = 10
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('variants')
-    parser.add_argument('--db')
+    parser.add_argument('--db', required=True)
     parser.add_argument('--min-freq-threshold', default=0.25, type=float)
     parser.add_argument('--freq-threshold', default=0.75, type=float)
     parser.add_argument('--min-depth', default=10, type=int)

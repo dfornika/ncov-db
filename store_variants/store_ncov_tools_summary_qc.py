@@ -3,10 +3,12 @@
 import argparse
 import collections
 import csv
-from datetime import date
 import json
 import os
 import sys
+
+from dataclasses import dataclass
+from datetime import date
 
 import sqlalchemy as sa
 import sqlalchemy.orm as sao
@@ -192,14 +194,11 @@ def store_qc_summary(session, qc_summary):
     return None
     
 
-def main(args):
+def main(args, kwargs):
+    if not args:
+        args = Args(**kwargs)
 
-    if args.db:
-        db = args.db
-    else:
-        db = ':memory:'
-
-    connection_string = "sqlite+pysqlite:///" + db
+    connection_string = "sqlite+pysqlite:///" + args.db
     engine = sa.create_engine(connection_string)
     Session = sao.sessionmaker()
     Session.configure(bind=engine)
@@ -219,9 +218,14 @@ def main(args):
         store_qc_summary(session, qc_summary)
 
 
+@dataclass
+class Args:
+    db: str
+    qc_summary: str
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('qc_summary')
-    parser.add_argument('--db')
+    parser.add_argument('--db', required=True)
     args = parser.parse_args()
     main(args)

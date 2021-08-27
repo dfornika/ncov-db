@@ -20,7 +20,6 @@ def upgrade():
     op.create_table(
         'qpcr_result',
         sa.Column('container_id', sa.String, sa.ForeignKey('container.container_id'), primary_key=True),
-        sa.Column('target',       sa.String),
         sa.Column('ct_value',     sa.Float),
     )
 
