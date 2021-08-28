@@ -15,5 +15,8 @@ setup(
     python_requires='>=3.5',
     install_requires=Path('requirements.txt').read_text(),
     setup_requires=['pytest-runner', 'flake8'],
-    tests_require=Path('requirements-tests.txt').read_text(), 
+    tests_require=Path('requirements-tests.txt').read_text(),
+    entry_points = {
+        'console_scripts': ['ncov-db=ncov_db.ncov_db:main'],
+    }
 )
