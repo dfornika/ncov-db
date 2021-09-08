@@ -38,7 +38,7 @@ ncov-db init --db ncov.db
 ### Load data from an analyzed sequencing run into an existing database
 
 Once a database has been initialized, new data can be loaded using the `ncov-db load-run` command. The `ncov-db load-run` command takes two arguments: the path to the analysis directory of the run
-to be loaded, and 
+to be loaded, and the path to the database to load the data into.
 
 ```
 usage: ncov-db load-run [-h] --db DB run_dir
@@ -51,3 +51,8 @@ optional arguments:
   --db DB
 ```
 
+Example:
+
+```
+ncov-db load-run --db ncov.db /path/to/analysis_by_run/210501_M01234_0123_000000000-ABC12
+```
