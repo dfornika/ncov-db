@@ -13,7 +13,7 @@ from datetime import date
 import sqlalchemy as sa
 import sqlalchemy.orm as sao
 
-import ncov_db.model as model
+from . import models
 
 
 def parse_metadata_tsv(metadata_tsv_path):
@@ -48,8 +48,8 @@ def store_metadata_records(session, metadata_records, force_update=False):
         container_id = metadata_record['library_id'].split('-')[0]
 
         existing_container = (
-            session.query(model.Container)
-            .filter(model.Container.container_id == container_id)
+            session.query(models.Container)
+            .filter(models.Container.id == container_id)
             .one_or_none()
         )
 
@@ -60,15 +60,15 @@ def store_metadata_records(session, metadata_records, force_update=False):
             session.commit()
         elif existing_container is None:
             if not (container_id.startswith('NEG') or container_id.startswith('POS')):
-                container = model.Container()
-                container.container_id = container_id
+                container = models.Container()
+                container.id = container_id
                 container.collection_date = metadata_record['collection_date']
 
                 session.add(container)
 
         existing_qpcr_result = (
-            session.query(model.QpcrResult)
-            .filter(model.QpcrResult.container_id == container_id)
+            session.query(models.QpcrResult)
+            .filter(models.QpcrResult.container_id == container_id)
             .one_or_none()
         )
 
@@ -76,7 +76,7 @@ def store_metadata_records(session, metadata_records, force_update=False):
             existing_qpcr_result.ct_value = metadata_record['ct_value']
         elif existing_qpcr_result is None:
             if not (metadata_record['library_id'].startswith('NEG') or metadata_record['library_id'].startswith('POS')):
-                qpcr_result = model.QpcrResult()
+                qpcr_result = models.QpcrResult()
                 qpcr_result.container_id = container_id
                 qpcr_result.ct_value = metadata_record['ct_value']
 

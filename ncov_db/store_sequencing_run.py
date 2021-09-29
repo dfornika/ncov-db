@@ -7,14 +7,12 @@ import json
 import os
 import pathlib
 
-import ncov_db.store_metadata_tsv
-import ncov_db.store_variants_tsv
-import ncov_db.store_ncov_tools_summary_qc
-import ncov_db.store_ncov_tools_amino_acid_mutation_table
+from . import store_metadata_tsv
+from . import store_variants_tsv
+from . import store_ncov_tools_summary_qc
+from . import store_ncov_tools_amino_acid_mutation_table
 
-def now():
-    now = datetime.datetime.now(datetime.timezone.utc).astimezone().isoformat()
-    return now
+from .time import now
 
 def percent(n, d):
     pct = round(n  / d * 100, 2)
@@ -39,7 +37,7 @@ def main(args):
     total_metadata_files = len(metadata_files)
     for n, f in enumerate(metadata_files):
         store_metadata_args['metadata'] = f
-        ncov_db.store_metadata_tsv.main(None, store_metadata_args)
+        store_metadata_tsv.main(None, store_metadata_args)
         log_msg = collections.OrderedDict()
         log_msg['timestamp'] = now()
         log_msg['event_type'] = 'file_loaded'
@@ -63,7 +61,7 @@ def main(args):
     total_ivar_variant_files = len(ivar_variant_files)
     for n, f in enumerate(ivar_variant_files):
         store_ivar_variants_args['variants'] = f
-        ncov_db.store_variants_tsv.main(None, store_ivar_variants_args)
+        store_variants_tsv.main(None, store_ivar_variants_args)
         log_msg = collections.OrderedDict()
         log_msg['timestamp'] = now()
         log_msg['event_type'] = 'file_loaded'
@@ -92,7 +90,7 @@ def main(args):
     total_ncov_tools_summary_qc_files = len(ncov_tools_summary_qc)
     for n, f in enumerate(ncov_tools_summary_qc):
         store_ncov_tools_summary_qc_args['qc_summary'] = f
-        ncov_db.store_ncov_tools_summary_qc.main(None, store_ncov_tools_summary_qc_args)
+        store_ncov_tools_summary_qc.main(None, store_ncov_tools_summary_qc_args)
         log_msg = collections.OrderedDict()
         log_msg['timestamp'] = now()
         log_msg['event_type'] = 'file_loaded'
@@ -109,7 +107,7 @@ def main(args):
     total_ncov_tools_aa_table_files = len(ncov_tools_aa_tables)
     for n, f in enumerate(ncov_tools_aa_tables):
         store_ncov_tools_aa_mutation_args['ncov_tools_aa_table'] = f
-        ncov_db.store_ncov_tools_amino_acid_mutation_table.main(None, store_ncov_tools_aa_mutation_args)
+        store_ncov_tools_amino_acid_mutation_table.main(None, store_ncov_tools_aa_mutation_args)
         log_msg = collections.OrderedDict()
         log_msg['timestamp'] = now()
         log_msg['event_type'] = 'file_loaded'

@@ -14,7 +14,7 @@ from datetime import date
 import sqlalchemy as sa
 import sqlalchemy.orm as sao
 
-import ncov_db.model as model
+import ncov_db.models as models
 
 
 def library_id_to_container_id(library_id):
@@ -25,7 +25,7 @@ def library_id_to_container_id(library_id):
 
 
 def library_id_to_container_obj(library_id):
-    container_obj = model.Container()
+    container_obj = models.Container()
     container_obj.container_id = library_id_to_container_id(library_id)
     return container_obj
 
@@ -51,7 +51,7 @@ def library_id_to_library_obj(library_id):
     library['plate_row'] = library['plate_well'][0]
     library['plate_col'] = int(library['plate_well'][-2:])
     
-    library_obj = model.Library()
+    library_obj = models.Library()
     for key in library.keys():
         setattr(library_obj, key, library[key])
 
@@ -133,7 +133,7 @@ def parse_amino_acid_mutation_tsv(amino_acid_mutation_tsv_path):
             if m['mutation_name_by_amino_acid'] is not None:
                 m['mutation_name_by_amino_acid'] = m['mutation_name_by_amino_acid'].replace('-', ':').replace('orf', 'ORF')
             
-            aa_mutation_obj = model.NcovToolsAminoAcidMutation()
+            aa_mutation_obj = models.NcovToolsAminoAcidMutation()
             for key in m.keys():
                 setattr(aa_mutation_obj, key, m[key])
                 aa_mutations.append(aa_mutation_obj)
@@ -146,10 +146,10 @@ def store_amino_acid_mutations(session, amino_acid_mutations):
         container_id = library_id_to_container_id(amino_acid_mutation.library_id)
         if container_id:
             existing_container = (
-                session.query(model.Container)
+                session.query(models.Container)
                 .filter(
                     sa.and_(
-                        model.Container.container_id == container_id
+                        models.Container.id == container_id
                     )
                 )
                 .one_or_none()
@@ -161,10 +161,10 @@ def store_amino_acid_mutations(session, amino_acid_mutations):
                 session.commit()
     
         existing_library = (
-            session.query(model.Library)
+            session.query(models.Library)
             .filter(
                 sa.and_(
-                    model.Library.library_id == amino_acid_mutation.library_id
+                    models.Library.id == amino_acid_mutation.library_id
                 )
             )
             .one_or_none()
@@ -176,14 +176,14 @@ def store_amino_acid_mutations(session, amino_acid_mutations):
             session.commit()
 
         existing_amino_acid_mutation = (
-            session.query(model.NcovToolsAminoAcidMutation)
+            session.query(models.NcovToolsAminoAcidMutation)
             .filter(
                 sa.and_(
-                    model.NcovToolsAminoAcidMutation.library_id == amino_acid_mutation.library_id,
-                    model.NcovToolsAminoAcidMutation.ref_accession == amino_acid_mutation.ref_accession,
-                    model.NcovToolsAminoAcidMutation.nucleotide_position == amino_acid_mutation.nucleotide_position,
-                    model.NcovToolsAminoAcidMutation.ref_allele == amino_acid_mutation.ref_allele,
-                    model.NcovToolsAminoAcidMutation.alt_allele == amino_acid_mutation.alt_allele,
+                    models.NcovToolsAminoAcidMutation.library_id == amino_acid_mutation.library_id,
+                    models.NcovToolsAminoAcidMutation.ref_accession == amino_acid_mutation.ref_accession,
+                    models.NcovToolsAminoAcidMutation.nucleotide_position == amino_acid_mutation.nucleotide_position,
+                    models.NcovToolsAminoAcidMutation.ref_allele == amino_acid_mutation.ref_allele,
+                    models.NcovToolsAminoAcidMutation.alt_allele == amino_acid_mutation.alt_allele,
                 )
             )
             .one_or_none()

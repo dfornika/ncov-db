@@ -13,7 +13,7 @@ from datetime import date
 import sqlalchemy as sa
 import sqlalchemy.orm as sao
 
-import ncov_db.model as model
+import ncov_db.models as models
 
 
 def sequencing_run_id_to_run_date(sequencing_run_id):
@@ -27,8 +27,8 @@ def sequencing_run_id_to_run_date(sequencing_run_id):
 
 
 def sequencing_run_id_to_sequencing_run_obj(sequencing_run_id):
-    sequencing_run_obj = model.SequencingRun()
-    sequencing_run_obj.sequencing_run_id = sequencing_run_id
+    sequencing_run_obj = models.SequencingRun()
+    sequencing_run_obj.id = sequencing_run_id
     sequencing_run_obj.run_date = sequencing_run_id_to_run_date(sequencing_run_id)
     sequencing_run_obj.instrument_id = sequencing_run_id.split('_')[1]
     if sequencing_run_obj.instrument_id.startswith('M'):
@@ -46,7 +46,7 @@ def library_id_to_container_id(library_id):
 
 
 def library_id_to_container_obj(library_id):
-    container_obj = model.Container()
+    container_obj = models.Container()
     container_obj.container_id = library_id_to_container_id(library_id)
     return container_obj
 
@@ -72,7 +72,7 @@ def library_id_to_library_obj(library_id):
     library['plate_row'] = library['plate_well'][0]
     library['plate_col'] = int(library['plate_well'][-2:])
     
-    library_obj = model.Library()
+    library_obj = models.Library()
     for key in library.keys():
         setattr(library_obj, key, library[key])
 
@@ -117,7 +117,7 @@ def parse_qc_summary_tsv(qc_summary_tsv_path):
             for f in float_fields:
                 q[f] = float(row[f])
             
-            qc_summary_obj = model.NcovToolsSummaryQC()
+            qc_summary_obj = models.NcovToolsSummaryQC()
             for key in q.keys():
                 setattr(qc_summary_obj, key, q[key])
 
@@ -128,9 +128,9 @@ def parse_qc_summary_tsv(qc_summary_tsv_path):
 
 def store_sequencing_run(session, sequencing_run_id):
     existing_run = (
-        session.query(model.SequencingRun)
+        session.query(models.SequencingRun)
         .filter(
-            model.SequencingRun.sequencing_run_id == sequencing_run_id
+            models.SequencingRun.id == sequencing_run_id
         )
         .one_or_none()
     )
@@ -145,10 +145,10 @@ def store_qc_summary(session, qc_summary):
     container_id = library_id_to_container_id(qc_summary.library_id)
     if container_id:
         existing_container = (
-            session.query(model.Container)
+            session.query(models.Container)
             .filter(
                 sa.and_(
-                    model.Container.container_id == container_id
+                    models.Container.id == container_id
                 )
             )
             .one_or_none()
@@ -160,10 +160,10 @@ def store_qc_summary(session, qc_summary):
             session.commit()
     
     existing_library = (
-        session.query(model.Library)
+        session.query(models.Library)
         .filter(
             sa.and_(
-                model.Library.library_id == qc_summary.library_id
+                models.Library.id == qc_summary.library_id
             )
         )
         .one_or_none()
@@ -175,11 +175,11 @@ def store_qc_summary(session, qc_summary):
         session.commit()
 
     existing_qc_summary = (
-        session.query(model.NcovToolsSummaryQC)
+        session.query(models.NcovToolsSummaryQC)
         .filter(
             sa.and_(
-                model.NcovToolsSummaryQC.sequencing_run_id == qc_summary.sequencing_run_id,
-                model.NcovToolsSummaryQC.library_id == qc_summary.library_id
+                models.NcovToolsSummaryQC.sequencing_run_id == qc_summary.sequencing_run_id,
+                models.NcovToolsSummaryQC.library_id == qc_summary.library_id
             )
         )
         .one_or_none()

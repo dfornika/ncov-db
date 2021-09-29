@@ -5,7 +5,9 @@ import sys
 
 import alembic.config
 
-import ncov_db.store_sequencing_run
+from . import store_sequencing_run
+from . import store_melted_freebayes_vcfs
+from . import store_pangolin_results
 
 '''
 There are more sophisticated libraries for building sub-commands but
@@ -47,7 +49,29 @@ class SubCommands(object):
             'db': args.db,
             'run_dir': args.run_dir,
         }
-        ncov_db.store_sequencing_run.main(args)
+        store_sequencing_run.main(args)
+
+    def load_melted_freebayes_vcfs(self):
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--db', required=True)
+        parser.add_argument('melted_vcfs_dir')
+        args = parser.parse_args(sys.argv[2:])
+        kwargs = {
+            'db': args.db,
+            'melted_vcfs_dir': args.melted_vcfs_dir,
+        }
+        store_melted_freebayes_vcfs.main(args)
+
+    def load_pangolin_results(self):
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--db', required=True)
+        parser.add_argument('pangolin_results')
+        args = parser.parse_args(sys.argv[2:])
+        kwargs = {
+            'db': args.db,
+            'pangolin_results': args.pangolin_results,
+        }
+        store_pangolin_results.main(args)
 
 
 def main():

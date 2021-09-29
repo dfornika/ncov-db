@@ -12,7 +12,8 @@ from dataclasses import dataclass
 import sqlalchemy as sa
 import sqlalchemy.orm as sao
 
-import ncov_db.model as model
+from . import models
+from .time import now
 
 def library_id_to_container_id(library_id):
     container_id = None
@@ -22,7 +23,7 @@ def library_id_to_container_id(library_id):
 
 
 def library_id_to_container_obj(library_id):
-    container_obj = model.Container()
+    container_obj = models.Container()
     container_obj.container_id = library_id_to_container_id(library_id)
     return container_obj
 
@@ -30,7 +31,7 @@ def library_id_to_library_obj(library_id):
     library = {}
     library_id_components = library_id.split('-')
 
-    library['library_id'] = library_id
+    library['id'] = library_id
     if library_id.startswith('POS'):
         library['container_id'] = None
         library['library_plate_id'] = library_id_components[2]
@@ -49,7 +50,7 @@ def library_id_to_library_obj(library_id):
     library['plate_row'] = library['plate_well'][0]
     library['plate_col'] = int(library['plate_well'][-2:])
     
-    library_obj = model.Library()
+    library_obj = models.Library()
     for key in library.keys():
         setattr(library_obj, key, library[key])
 
@@ -71,7 +72,7 @@ def parse_variants_tsv(variants_tsv_path, library_id, filters):
         'TOTAL_DP':    'total_depth',
         'PVAL':        'p_value_fishers_exact',
         'PASS':        'p_value_pass',
-        'GFF_FEATURE': 'gene',
+        'GFF_FEATURE': 'gene_name',
         'REF_CODON':   'ref_codon',
         'REF_AA':      'ref_amino_acid',
         'ALT_CODON':   'alt_codon',
@@ -102,7 +103,7 @@ def parse_variants_tsv(variants_tsv_path, library_id, filters):
     ]
 
     na_null_fields = [
-        'gene',
+        'gene_name',
         'ref_codon',
         'ref_amino_acid',
         'alt_codon',
@@ -181,7 +182,18 @@ def parse_variants_tsv(variants_tsv_path, library_id, filters):
                     elif variant['alt_allele_frequency'] > filters['freq_threshold']:
                         variant['consensus_allele'] = variant['alt_allele']
                 except KeyError as e:
-                    print('No consensus allele. file: ' + str(variants_tsv_path) + ', position: ' + str(variant['nucleotide_position']))
+                    log_msg = collections.OrderedDict()
+                    log_msg['timestamp'] = now()
+                    log_msg['event_type'] = 'loading_error'
+                    log_msg['input_file'] = os.path.abspath(variants_tsv_path)
+                    log_msg['input_data_details'] = {
+                        'library_id': variant['library_id'],
+                        'nucleotide_position': str(variant['nucleotide_position']),
+                        'ref_allele': variant['ref_allele'],
+                        'alt_allele': variant['alt_allele'],
+                        'alt_allele_frequency': str(variant['alt_allele_frequency']),
+                    }
+                    print(json.dumps(log_msg))
 
             if variant['variant_type'] == 'snp':
                 try:
@@ -190,9 +202,20 @@ def parse_variants_tsv(variants_tsv_path, library_id, filters):
                     else:
                         variant['is_ambiguous'] = False
                 except KeyError as e:
-                    print('No consensus allele. file: ' + str(variants_tsv_path) + ', position: ' + str(variant['nucleotide_position']))
+                    log_msg = collections.OrderedDict()
+                    log_msg['timestamp'] = now()
+                    log_msg['event_type'] = 'loading_error'
+                    log_msg['input_file'] = os.path.abspath(variants_tsv_path)
+                    log_msg['input_data_details'] = {
+                        'library_id': variant['library_id'],
+                        'nucleotide_position': str(variant['nucleotide_position']),
+                        'ref_allele': variant['ref_allele'],
+                        'alt_allele': variant['alt_allele'],
+                        'alt_allele_frequency': str(variant['alt_allele_frequency']),
+                    }
+                    print(json.dumps(log_msg))
 
-            variant_obj = model.VariantIvar()
+            variant_obj = models.VariantIvar()
             for key in variant.keys():
                 setattr(variant_obj, key, variant[key])
 
@@ -202,19 +225,19 @@ def parse_variants_tsv(variants_tsv_path, library_id, filters):
 
 
 def store_container_for_library(session, library):
-    container_id = library.library_id.split('-')[0]
+    container_id = library.id.split('-')[0]
     
     existing_container = (
-        session.query(model.Container)
+        session.query(models.Container)
         .filter(
-            model.Container.container_id == container_id
+            models.Container.id == container_id
         )
         .one_or_none()
     )
 
     if existing_container is None:
-        container = model.Container()
-        container.container_id = container_id
+        container = models.Container()
+        container.id = container_id
         session.add(container)
         session.commit()
 
@@ -222,13 +245,13 @@ def store_container_for_library(session, library):
 
 
 def store_library(session, library):
-    if not (library.library_id.startswith('POS') or library.library_id.startswith('NEG')):
+    if not (library.id.startswith('POS') or library.id.startswith('NEG')):
         store_container_for_library(session, library)
     
     existing_library = (
-        session.query(model.Library)
+        session.query(models.Library)
         .filter(
-            model.Library.library_id == library.library_id
+            models.Library.id == library.id
         )
         .one_or_none()
     )
@@ -243,16 +266,16 @@ def store_library(session, library):
 def store_variants(session, variants):
     for idx, variant in enumerate(variants):
         existing_variant = (
-            session.query(model.VariantIvar)
+            session.query(models.VariantIvar)
             .filter(
                 sa.and_(
-                    model.VariantIvar.library_id == variant.library_id,
-                    model.VariantIvar.variant_calling_tool == variant.variant_calling_tool,
-                    model.VariantIvar.variant_calling_tool_version == variant.variant_calling_tool_version,
-                    model.VariantIvar.ref_accession == variant.ref_accession,
-                    model.VariantIvar.nucleotide_position == variant.nucleotide_position,
-                    model.VariantIvar.ref_allele == variant.ref_allele,
-                    model.VariantIvar.alt_allele == variant.alt_allele,
+                    models.VariantIvar.library_id == variant.library_id,
+                    models.VariantIvar.variant_calling_tool == variant.variant_calling_tool,
+                    models.VariantIvar.variant_calling_tool_version == variant.variant_calling_tool_version,
+                    models.VariantIvar.ref_accession == variant.ref_accession,
+                    models.VariantIvar.nucleotide_position == variant.nucleotide_position,
+                    models.VariantIvar.ref_allele == variant.ref_allele,
+                    models.VariantIvar.alt_allele == variant.alt_allele,
                 )
             )
             .one_or_none()

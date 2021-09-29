@@ -19,8 +19,8 @@ depends_on = None
 def upgrade():
     op.create_table(
         'pangolin_result',
-        sa.Column('sequencing_run_id',  sa.String, sa.ForeignKey('sequencing_run.sequencing_run_id'), primary_key=True),
-        sa.Column('library_id',         sa.String, sa.ForeignKey('library.library_id'), primary_key=True),
+        sa.Column('sequencing_run_id',  sa.String, sa.ForeignKey('sequencing_run.id'), primary_key=True),
+        sa.Column('library_id',         sa.String, sa.ForeignKey('library.id'), primary_key=True),
         sa.Column('lineage',            sa.String),
         sa.Column('conflict',           sa.Float),
         sa.Column('ambiguity_score',    sa.Float),

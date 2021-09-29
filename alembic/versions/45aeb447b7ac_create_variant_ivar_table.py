@@ -19,7 +19,7 @@ depends_on = None
 def upgrade():
     op.create_table(
         'variant_ivar',
-        sa.Column('library_id',                     sa.String, sa.ForeignKey('library.library_id'), primary_key=True),
+        sa.Column('library_id',                     sa.String, sa.ForeignKey('library.id'), primary_key=True),
         sa.Column('variant_calling_tool',           sa.String, primary_key=True),
         sa.Column('variant_calling_tool_version',   sa.String, primary_key=True),
         sa.Column('ref_accession',                  sa.String, primary_key=True),
@@ -39,7 +39,7 @@ def upgrade():
         sa.Column('total_depth',                    sa.Integer),
         sa.Column('p_value_fishers_exact',          sa.Float),
         sa.Column('p_value_pass',                   sa.Boolean),
-        sa.Column('gene',                           sa.String),
+        sa.Column('gene_name',                      sa.String),
         sa.Column('ref_codon',                      sa.String),
         sa.Column('ref_amino_acid',                 sa.String),
         sa.Column('alt_codon',                      sa.String),

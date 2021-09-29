@@ -19,7 +19,7 @@ depends_on = None
 def upgrade():
     op.create_table(
         'library',
-        sa.Column('library_id',       sa.String, primary_key=True),
+        sa.Column('id',               sa.String, primary_key=True),
         sa.Column('container_id',     sa.String, sa.ForeignKey('container.container_id')),
         sa.Column('library_plate_id', sa.Integer),
         sa.Column('index_set_id',     sa.String),

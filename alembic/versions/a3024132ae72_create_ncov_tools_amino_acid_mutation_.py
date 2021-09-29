@@ -19,7 +19,7 @@ depends_on = None
 def upgrade():
     op.create_table(
         'ncov_tools_amino_acid_mutation',
-        sa.Column('library_id',                  sa.String, sa.ForeignKey('library.library_id'), primary_key=True),
+        sa.Column('library_id',                  sa.String, sa.ForeignKey('library.id'), primary_key=True),
         sa.Column('ref_accession',               sa.String, primary_key=True),
         sa.Column('nucleotide_position',         sa.Integer, primary_key=True),
         sa.Column('ref_allele',                  sa.Integer, primary_key=True),

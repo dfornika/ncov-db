@@ -19,10 +19,10 @@ depends_on = None
 def upgrade():
     op.create_table(
         'sequencing_run',
-        sa.Column('sequencing_run_id', sa.String, primary_key=True),
-        sa.Column('run_date',          sa.Date),
-        sa.Column('platform',          sa.String),
-        sa.Column('instrument_id',     sa.String),
+        sa.Column('id',            sa.String, primary_key=True),
+        sa.Column('run_date',      sa.Date),
+        sa.Column('platform',      sa.String),
+        sa.Column('instrument_id', sa.String),
     )
 
 

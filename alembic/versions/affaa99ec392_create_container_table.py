@@ -19,7 +19,7 @@ depends_on = None
 def upgrade():
     op.create_table(
         'container',
-        sa.Column('container_id',    sa.String, primary_key=True),
+        sa.Column('id',              sa.String, primary_key=True),
         sa.Column('collection_date', sa.Date),
     )
 
